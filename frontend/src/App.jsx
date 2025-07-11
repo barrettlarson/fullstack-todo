@@ -94,13 +94,40 @@ useEffect(() => {
           { contextMenu.visible && (
             <div
               className="context-menu"
-              style={{ position: 'fixed', top: contextMenu.y, left: contextMenu.x, zIndex: 1000 }}
-              onClick={() => {
-                deleteTask(contextMenu.taskId);
-                setContextMenu({ ...contextMenu, visible: false });
-              }}
+              style={{ top: contextMenu.y, left: contextMenu.x }}
+              onMouseLeave={() => setContextMenu({ ...contextMenu, visible: false })}
             >
-              Delete
+              <div 
+                style={{ cursor: 'pointer', marginBottom: '5px' }}
+                onClick={() => {
+                  const task = tasks.find(t => t._id === contextMenu.taskId);
+                  if (task) {
+                    const updatedTask = { ...task, completed: !task.completed };
+                    setTasks(tasks.map(t => t._id === task._id ? updatedTask : t));
+                    fetch(`http://localhost:3001/todos/${task._id}`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ completed: updatedTask.completed })
+                    });
+
+                  }
+                  setContextMenu({ ...contextMenu, visible: false, });
+                }}
+              >
+                {(() => {
+                  const task = tasks.find(t => t._id === contextMenu.taskId);
+                  return task && task.completed ? 'Unmark as Completed' : 'Mark as Completed';
+                })()}
+              </div>
+              <div
+                style={{ cursor: 'pointer', color: 'red' }}
+                onClick={() => {
+                  deleteTask(contextMenu.taskId);
+                  setContextMenu({ ...contextMenu, visible: false });
+                }}
+            >
+                Delete
+              </div>
             </div>
           )}
           {tasks
@@ -110,7 +137,18 @@ useEffect(() => {
                 e.preventDefault();
                 setContextMenu({ visible: true, x: e.clientX, y: e.clientY, taskId: task._id });
               }}>
-                <input type="checkbox" />
+                <input type="checkbox"
+                checked={task.completed}
+                onChange={() => {
+                  const updatedTask = { ...task, completed: !task.completed };
+                  setTasks(tasks.map(t => t._id === task._id ? updatedTask : t));
+                  fetch(`http://localhost:3001/todos/${task._id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ completed: updatedTask.completed })
+                  }); 
+                }}
+                />
                 <span>{task.text}</span>
               </li>
             ))}

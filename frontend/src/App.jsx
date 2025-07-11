@@ -6,6 +6,10 @@ function App() {
   const [input, setInput] = useState('');
   const [search, setSearch] = useState('');
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, taskId: null });
+  const [section, setSection] = useState('My Day');
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState('');
+  const taskCompleteSound = new Audio('sounds/task-complete.mp3');
 
 useEffect(() => {
   fetch('http://localhost:3001/todos')
@@ -52,23 +56,60 @@ useEffect(() => {
     }
   }
 
+  const editTask = async (id, newText) => {
+    const response = await fetch(`http://localhost:3001/todos/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: newText })
+    });
+    if (response.ok) {
+      const updatedTask = await response.json();
+      setTasks(tasks.map(t => t._id === id ? updatedTask : t));
+      setEditingId(null);
+      setEditText('');
+    } else {
+      console.error('Failed to edit task');
+    }
+  }
+
+  const fetchSuggestions = async (prompt) => {
+    if (!prompt || prompt.trim() === '') {
+      return;
+    }
+    const response = await fetch('http://localhost:3001/suggestions/suggest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data.suggestion) {
+        setInput(data.suggestion);
+      }
+    } else {
+      console.error('Failed to fetch suggestion');
+    }
+  };
+
   return (
     <div className="todo-app">
       <aside className="sidebar">
         <h2>To Do</h2>
         <nav>
           <ul>
-            <li className="active">My Day</li>
-            <li>Important</li>
-            <li>Planned</li>
-            <li>Tasks</li>
+            <li className={section === 'My Day' ? 'active' : ' '}
+              onClick={() => setSection('My Day')}>My Day</li>
+            <li className={section === 'Important' ? 'active' : ' '}
+              onClick={() => setSection('Important')}>Important</li>
+            <li className={section === 'Completed' ? 'active' : ' '}
+              onClick={() => setSection('Completed')}>Completed</li>
           </ul>
         </nav>
       </aside>
       <div className="main-section">
         <header className="main-header">
           <div>
-            <h1>My Day</h1>
+            <h1>{section}</h1>
             <span className="date">{new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</span>
           </div>
           <input
@@ -85,7 +126,10 @@ useEffect(() => {
             type="text"
             placeholder="Add a task"
             value={input}
-            onChange={e => setInput(e.target.value)}
+            onChange={e => {
+              setInput(e.target.value);
+              fetchSuggestions(e.target.value);
+            }}
             onKeyDown={e => e.key === 'Enter' && addTask()}
           />
           <button className="add-task-btn" onClick={addTask}>+</button>
@@ -97,11 +141,25 @@ useEffect(() => {
               style={{ top: contextMenu.y, left: contextMenu.x }}
               onMouseLeave={() => setContextMenu({ ...contextMenu, visible: false })}
             >
-              <div 
+              <div className="context-menu-item"
+                style={{ cursor: 'pointer', marginBottom: '5px' }}
+                onClick={() => {
+                  setEditingId(contextMenu.taskId);
+                  const task = tasks.find(t => t._id === contextMenu.taskId);
+                  setEditText(task ? task.text : '');
+                  setContextMenu({ ...contextMenu, visible: false });                 
+              }}
+                >
+                  📝 Edit Task
+                </div>
+              <div className="context-menu-item"
                 style={{ cursor: 'pointer', marginBottom: '5px' }}
                 onClick={() => {
                   const task = tasks.find(t => t._id === contextMenu.taskId);
                   if (task) {
+                    if (!task.completed) {
+                      taskCompleteSound.play();
+                    }
                     const updatedTask = { ...task, completed: !task.completed };
                     setTasks(tasks.map(t => t._id === task._id ? updatedTask : t));
                     fetch(`http://localhost:3001/todos/${task._id}`, {
@@ -116,21 +174,47 @@ useEffect(() => {
               >
                 {(() => {
                   const task = tasks.find(t => t._id === contextMenu.taskId);
-                  return task && task.completed ? 'Unmark as Completed' : 'Mark as Completed';
+                  return task && task.completed ? '✅ Unmark as Completed' : '✅ Mark as Completed';
                 })()}
               </div>
-              <div
+              <div className="context-menu-item"
+                style={{ cursor: 'pointer', marginBottom: '5px' }}
+                onClick={() => {
+                  const task = tasks.find(t => t._id === contextMenu.taskId);
+                  if (task) {
+                    const updatedTask = { ...task, important: !task.important };
+                    setTasks(tasks.map(t => t._id === task._id ? updatedTask : t));
+                    fetch(`http://localhost:3001/todos/${task._id}`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ important: updatedTask.important })
+                    });
+                  }
+                  setContextMenu({ ...contextMenu, visible: false });
+                }}
+              >
+                {(() => {
+                  const task = tasks.find(t => t._id === contextMenu.taskId);
+                  return task && task.important ? '⭐Unmark as Important' : '⭐ Mark as Important';
+                })()}
+              </div>
+              <div className="context-menu-item"
                 style={{ cursor: 'pointer', color: 'red' }}
                 onClick={() => {
                   deleteTask(contextMenu.taskId);
                   setContextMenu({ ...contextMenu, visible: false });
                 }}
-            >
-                Delete
+              >
+                🗑️ Delete
               </div>
             </div>
           )}
           {tasks
+            .filter(t => {
+              if (section === 'Important') return t.important;
+              if (section === 'Completed') return t.completed;
+              return true; // My Day or all tasks
+            })
             .filter(t => t.text.toLowerCase().includes(search.toLowerCase()))
             .map((task, i) => (
               <li key={i} className="task-item" onContextMenu={e => {
@@ -141,6 +225,9 @@ useEffect(() => {
                 checked={task.completed}
                 onChange={() => {
                   const updatedTask = { ...task, completed: !task.completed };
+                  if(!task.completed) {
+                    taskCompleteSound.play();
+                  }
                   setTasks(tasks.map(t => t._id === task._id ? updatedTask : t));
                   fetch(`http://localhost:3001/todos/${task._id}`, {
                     method: 'PUT',
@@ -149,7 +236,36 @@ useEffect(() => {
                   }); 
                 }}
                 />
-                <span>{task.text}</span>
+               {editingId === task._id ? (
+                <input
+                  type="text"
+                  className="add-task-input" // Use same style as your add input
+                  value={editText}
+                  autoFocus
+                  onChange={e => setEditText(e.target.value)}
+                  onBlur={() => editTask(task._id, editText)}
+                  onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                  editTask(task._id, editText);
+                  setEditText('');
+                } else if (e.key === 'Escape') {
+                  setEditingId(null);
+                  setEditText('');
+                }
+              }}
+            />
+          ) : (
+                <span
+                  onDoubleClick={() => {
+                    setEditingId(task._id);
+                    setEditText(task.text);
+                  }}
+                >
+                  {task.text}
+                </span>           
+              )}
+            
+                {task.important && <span className="important-icon">⭐</span>}
               </li>
             ))}
         </ul>

@@ -162,4 +162,25 @@ body {
   margin-top: 8px;
 }
 
+.context-menu {
+  position: absolute;
+  background: #fff;
+  border: 1px solid #e0e3ea;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  position: 'fixed';
+  display: flex;
+  justify-content: left;
+  align-items: left;
+  flex-direction: column;
+}
 
+.context-menu-item {
+  padding: 0.5rem 1rem;
+  margin: 0 0;
+}
+
+.important-icon {
+  margin-left: auto;
+}

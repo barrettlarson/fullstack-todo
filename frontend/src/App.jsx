@@ -97,25 +97,6 @@ useEffect(() => {
     }
   }
 
-  const fetchSuggestions = async (prompt) => {
-    if (!prompt || prompt.trim() === '') {
-      return;
-    }
-    const response = await fetch('http://localhost:3001/suggestions/suggest', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt })
-    });
-    if (response.ok) {
-      const data = await response.json();
-      if (data.suggestion) {
-        setInput(data.suggestion);
-      }
-    } else {
-      console.error('Failed to fetch suggestion');
-    }
-  };
-
   return (
     <div className="todo-app">
       <aside className="sidebar">

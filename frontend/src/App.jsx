@@ -27,19 +27,17 @@ useEffect(() => {
 }, [contextMenu.visible]);
 
 useEffect(() => {
-  fetch('http://localhost:3001/todos')
+  fetch('http://localhost:5000/todos')
     .then(res => res.json())
     .then(data => {
       if (Array.isArray(data)) {
         setTasks(data);
       } else {
         setTasks([]);
-        console.error('Expected array but got:', data);
       }
     })
     .catch(err => {
       setTasks([]);
-      console.error('Fetch error:', err);
     });
 }, []);
 
@@ -55,36 +53,42 @@ useEffect(() => {
 
   const addTask = async () => {
     if (input.trim()) {
-      const response = await fetch('http://localhost:3001/todos/',{
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/todos/',{
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+       },
       body: JSON.stringify({ text: input })
     });
       if (response.ok && input.length <= 100) {
         const newTask = await response.json();
         setTasks([newTask, ...tasks]);
         setInput('');
-      } else {
-        console.error('Failed to add task');
       }
   }
 };
 
   const deleteTask = async (id) => {
-    const response = await fetch('http://localhost:3001/todos/' + id, {
-      method: 'DELETE'
+    const token = localStorage.getItem('token');
+    const response = await fetch('http://localhost:5000/todos/' + id, {
+      method: 'DELETE',
+      headers: {'Authorization': `Bearer ${token}`
+    }
     });
+
     if (response.ok) {
       setTasks(tasks.filter(t => t._id !== id));
-    } else {
-      console.error('Failed to delete task');
     }
   }
 
   const editTask = async (id, newText) => {
-    const response = await fetch(`http://localhost:3001/todos/${id}`, {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`http://localhost:5000/todos/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+       },
       body: JSON.stringify({ text: newText })
     });
     if (response.ok) {
@@ -92,8 +96,6 @@ useEffect(() => {
       setTasks(tasks.map(t => t._id === id ? updatedTask : t));
       setEditingId(null);
       setEditText('');
-    } else {
-      console.error('Failed to edit task');
     }
   }
 
@@ -141,7 +143,6 @@ useEffect(() => {
             value={input}
             onChange={e => {
               setInput(e.target.value);
-              fetchSuggestions(e.target.value);
             }}
             onKeyDown={e => e.key === 'Enter' && addTask()}
           />

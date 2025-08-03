@@ -8,7 +8,7 @@ const [password, setPassword] = useState('');
 const navigate = useNavigate();
 
 const login = async () => {
-  const response = await fetch('http://localhost:3001/auth/login', {
+  const response = await fetch('http://localhost:5000/auth/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -17,16 +17,13 @@ const login = async () => {
   });
   if (response.ok) {
     const data = await response.json();
-    console.log('Login successful:', data);
+    localStorage.setItem('token', data.token);
     navigate('/App');
-  } else {
-    console.error('Login failed:', response.statusText);  
-    // Handle login failure (e.g., show error message)
   }
 }
 
 const register = async () => {
-  const reponse = await fetch('http://localhost:3001/auth/register', {
+  const reponse = await fetch('http://localhost:5000/auth/register', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -35,11 +32,7 @@ const register = async () => {
   });
   if (reponse.ok) {
     const data = await reponse.json();
-    console.log('Registration successful:', data);
     navigate('/App');
-  } else {
-    console.error('Registration failed:', reponse.statusText);
-    // Handle registration failure (e.g., show error message)
   }
 }
 

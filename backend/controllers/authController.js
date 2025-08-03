@@ -30,7 +30,7 @@ const register = async (req, res) => {
         res.status(201).json({
             _id: newUser._id,
             username: newUser.username,
-            token, // ✅ include token
+            token,
         });
     } catch (err) {
         console.error(err);
@@ -58,7 +58,7 @@ const login = async (req, res) => {
         res.status(200).json({
             _id: user._id,
             username: user.username,
-            token, // ✅ include token
+            token,
         });
     } catch (err) {
         console.error(err);

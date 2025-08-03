@@ -4,12 +4,21 @@ const bcrypt = require('bcryptjs');
 const userSchema = new mongoose.Schema({
     username: {
         type: String,
-        required: true,
+        required: [true, "An email is required."],
         unique: true,
+        lowercase: true,
+        trim: true,
+        validate: {
+            validator: function(v) {
+                return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v);
+            },
+            message: props => `${props.value} is not a valid email address!`
+        }
     },
     password: {
         type: String,
-        required: true,
+        required: [true, "A password is required."],
+        minlength: [6, "Password must be at least 6 characters long"]
     }
 });
 

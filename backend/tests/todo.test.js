@@ -9,16 +9,16 @@ let token;
 beforeAll(async () => {
     await mongoose.connect(process.env.MONGODB_URI);
 
-    await User.deleteOne({ username: 'testuser' });
+    await User.deleteOne({ username: 'testuser@gmail.com' });
 
     // Register and login to get a token
     const registerRes = await request(app)
         .post('/auth/register')
-        .send({ username: 'testuser', password: 'password123' });
+        .send({ username: 'testuser@gmail.com', password: 'password123' });
 
     const loginRes = await request(app)
         .post('/auth/login')
-        .send({ username: 'testuser', password: 'password123' });
+        .send({ username: 'testuser@gmail.com', password: 'password123' });
 
     token = loginRes.body.token;
     console.log('Register status:', registerRes.statusCode);

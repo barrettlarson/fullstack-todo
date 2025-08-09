@@ -19,6 +19,9 @@ const login = async () => {
     const data = await response.json();
     localStorage.setItem('token', data.token);
     navigate('/App');
+  } else {
+    const errorData = await response.json();
+    alert(errorData.message || 'Login failed');
   }
 }
 
@@ -33,6 +36,9 @@ const register = async () => {
   if (reponse.ok) {
     const data = await reponse.json();
     navigate('/App');
+  } else {
+    const errorData = await reponse.json();
+    alert(errorData.message || 'Registration failed');
   }
 }
 

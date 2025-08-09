@@ -123,7 +123,7 @@ useEffect(() => {
       </aside>
       <div className="main-section">
         <header className="main-header">
-          <div>
+          <div className="header-title">
             <h1>{section}</h1>
             <span className="date">{new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</span>
           </div>
@@ -307,6 +307,11 @@ useEffect(() => {
           {showAlert ? 'All tasks are completed! 🎉' : ''}
         </button>
       </div>
+      <ul className="mobile-bottom-nav">
+        <li className={section === 'My Day' ? 'active' : ''} onClick={() => setSection('My Day')}>My Day</li>
+        <li className={section === 'Important' ? 'active' : ''} onClick={() => setSection('Important')}>Important</li>
+        <li className={section === 'Completed' ? 'active' : ''} onClick={() => setSection('Completed')}>Completed</li>
+      </ul>
     </div>
   );
 }

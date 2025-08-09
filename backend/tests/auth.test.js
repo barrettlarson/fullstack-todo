@@ -39,7 +39,6 @@ describe('POST /auth/register', () => {
 
 describe('POST /auth/login', () => {
     it('should login an existing user', async () => {
-        // First register a user
         await request(app)
             .post('/auth/register')
             .send({ username: 'testuser@gmail.com', password: 'password123' });
@@ -50,7 +49,7 @@ describe('POST /auth/login', () => {
         expect(res.statusCode).toBe(200);
         expect(res.body).toHaveProperty('_id');
         expect(res.body.username).toBe('testuser@gmail.com');
-        token = res.body.token; // Store token for further tests
+        token = res.body.token; 
     });
 
     it('should return 401 for invalid credentials', async () => {

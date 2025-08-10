@@ -3,14 +3,19 @@ const mongoose = require('mongoose');
 const app = require('./app');
 
 const PORT = process.env.PORT || 3001;
+const MONGO = process.env.MONGODB_URI
 
-mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => {
+async function start() {
+  try {
+    await mongoose.connect(MONGO);
     console.log('MongoDB connected');
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
-  })
-  .catch(err => {
-    console.error('MongoDB connection error:', err);
-  });
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    process.exit(1);
+  }
+}
+
+start();

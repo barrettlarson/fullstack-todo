@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import './index.css';
+import { api } from './api';
 
 function App() {
   const [tasks, setTasks] = useState([]);
@@ -27,18 +28,10 @@ useEffect(() => {
 }, [contextMenu.visible]);
 
 useEffect(() => {
-  fetch('http://localhost:5000/todos')
+  api('/todos')
     .then(res => res.json())
-    .then(data => {
-      if (Array.isArray(data)) {
-        setTasks(data);
-      } else {
-        setTasks([]);
-      }
-    })
-    .catch(err => {
-      setTasks([]);
-    });
+    .then(data => Array.isArray(data) ? setTasks(data) : setTasks([]))
+    .catch(() => setTasks([]));
 }, []);
 
 useEffect(() => {
@@ -54,7 +47,7 @@ useEffect(() => {
   const addTask = async () => {
     if (input.trim()) {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/todos/',{
+      const response = await api('/todos', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
@@ -71,7 +64,7 @@ useEffect(() => {
 
   const deleteTask = async (id) => {
     const token = localStorage.getItem('token');
-    const response = await fetch('http://localhost:5000/todos/' + id, {
+    const response = await api(`/todos${id}`, {
       method: 'DELETE',
       headers: {'Authorization': `Bearer ${token}`
     }
@@ -84,7 +77,7 @@ useEffect(() => {
 
   const editTask = async (id, newText) => {
     const token = localStorage.getItem('token');
-    const response = await fetch(`http://localhost:5000/todos/${id}`, {
+    const response = await api(`/todos/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
@@ -179,7 +172,7 @@ useEffect(() => {
                     }
                     const updatedTask = { ...task, completed: !task.completed };
                     setTasks(tasks.map(t => t._id === task._id ? updatedTask : t));
-                    fetch(`http://localhost:3001/todos/${task._id}`, {
+                    api(`/todos/${task._id}`, {
                       method: 'PUT',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ completed: updatedTask.completed })
@@ -201,7 +194,7 @@ useEffect(() => {
                   if (task) {
                     const updatedTask = { ...task, important: !task.important };
                     setTasks(tasks.map(t => t._id === task._id ? updatedTask : t));
-                    fetch(`http://localhost:3001/todos/${task._id}`, {
+                    api(`/todos/${task._id}`, {
                       method: 'PUT',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ important: updatedTask.important })

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './index.css';
+import { api } from './api';
 
 function Auth() {
 const [username, setUsername] = useState('');
@@ -8,7 +9,7 @@ const [password, setPassword] = useState('');
 const navigate = useNavigate();
 
 const login = async () => {
-  const response = await fetch('http://localhost:5000/auth/login', {
+  const response = await api('/auth/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -26,7 +27,7 @@ const login = async () => {
 }
 
 const register = async () => {
-  const reponse = await fetch('http://localhost:5000/auth/register', {
+  const reponse = await api('/auth/register', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

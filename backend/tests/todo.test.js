@@ -12,13 +12,14 @@ beforeAll(async () => {
     await User.deleteOne({ username: 'testuser@gmail.com' });
 
     // Register and login to get a token
+    const email = `testuser+${Date.now()}@gmail.com`;
     const registerRes = await request(app)
         .post('/auth/register')
-        .send({ username: 'testuser@gmail.com', password: 'password123' });
+        .send({ username: email, password: 'password123' });
 
     const loginRes = await request(app)
         .post('/auth/login')
-        .send({ username: 'testuser@gmail.com', password: 'password123' });
+        .send({ username: email, password: 'password123' });
 
     token = loginRes.body.token;
     console.log('Register status:', registerRes.statusCode);
